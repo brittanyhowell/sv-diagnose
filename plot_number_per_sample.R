@@ -103,6 +103,17 @@ ggplot(comp.with.batch[which(comp.with.batch$SVTYPE=="DEL"),]) +
   theme_bw() 
 
 
+# sinaplot(data=comp.with.batch,
+#           HET ~ batch + SVTYPE, 
+#           pch=20, 
+#          scale = FALSE, 
+#          method = "counts",
+#          # col = rainbow(n_groups),
+#          xaxt = "n")
+# text(x = 1:n_groups,
+#      y = par()$usr[3] - 0.1 * (par()$usr[4] - par()$usr[3]),
+#      labels = levels(blood$Class), srt = 45, xpd = TRUE, adj = 1,
+#      cex = .8)
   
 
 # ## MSQ
