@@ -34,22 +34,23 @@ Now I have to bind this to which batch the variants belong to.
 Ugh I have deleted the individual filelists per batch. Nevermind I'll make them again: 
 
 ``` bash
-fileList=/lustre/scratch119/humgen/projects/cnv_15x/svtools/Phase-I/BATCHmerge/input_lists/sampleList.list  
-files=( $(cat $fileList))
-echo ${files[@]:0:465}     | tr " " "\n" | awk '{print $0 "\tBATCH1"}' > sampleList_batch1.list
-echo ${files[@]:465:465}   | tr " " "\n" | awk '{print $0 "\tBATCH2"}' > sampleList_batch2.list
-echo ${files[@]:930:930}   | tr " " "\n" | awk '{print $0 "\tBATCH3"}' > sampleList_batch3.list
-echo ${files[@]:1860:932}  | tr " " "\n" | awk '{print $0 "\tBATCH4"}' > sampleList_batch4.list
-echo ${files[@]:2792:932}  | tr " " "\n" | awk '{print $0 "\tBATCH5"}' > sampleList_batch5.list
-
-cat *_batch* > sampleList_batchname.txt
+cd /lustre/scratch119/humgen/projects/cnv_15x/svtools/Phase-I/PostMerge_vcf/
+head -n4000 BATCH1.vcf | grep "SAMPLE=" | sed 's/##SAMPLE=<ID=//g'| sed 's/>//g' | awk '{print $0 "\tBATCH1"}' > sampleList_batch1.list
+head -n4000 BATCH2.vcf | grep "SAMPLE=" | sed 's/##SAMPLE=<ID=//g'| sed 's/>//g' | awk '{print $0 "\tBATCH2"}' > sampleList_batch2.list
+head -n4000 BATCH3.vcf | grep "SAMPLE=" | sed 's/##SAMPLE=<ID=//g'| sed 's/>//g' | awk '{print $0 "\tBATCH3"}' > sampleList_batch3.list
+head -n4000 BATCH4.vcf | grep "SAMPLE=" | sed 's/##SAMPLE=<ID=//g'| sed 's/>//g' > tmp.tmp
+cat tmp.tmp missing | awk '{print $0 "\tBATCH4"}' > sampleList_batch4.list
+rm tmp.tmp
+head -n4000 BATCH5.vcf | grep "SAMPLE=" | sed 's/##SAMPLE=<ID=//g'| sed 's/>//g' | awk '{print $0 "\tBATCH5"}' > sampleList_batch5.list
+cat sampleList_batch*list > sampleList_batchname.txt
+mv sampleList_batchname.txt /lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/
 ```
 
 Now I have a table to read into R --- Back to plot_number_per_sample.R
 
 ### How many variants/genotypes per person - PreMerge
 
-I have worked out how many variants per sample after regenotyping and it is wacky. So I am going to return to the original VCFs, and count again. The following loop is run inside of a directory containing all of the VCFs. 
+I have worked out how many variants per sample after regenotyping and it is wacky. So I am going to return to the original VCFs, and count again. The following loop is run inside of a directory containing all of the VCFs.
 
 #### read a vcf
 
