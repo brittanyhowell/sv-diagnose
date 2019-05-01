@@ -95,6 +95,9 @@ graphics.off()
 ###### Read in PreMerge VCFs
 
 setwd("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/")
+
+
+
 for (num in 1:5){
   print(num)
 d <- dir(paste("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/BATCH",num,sep=""), full.names=TRUE)
@@ -105,37 +108,44 @@ for (i in 1:length(d)) {
     
   sample.vars <- read.table(d[i], stringsAsFactors=F)
   colnames(sample.vars) <- c("chr", "pos", "SVTYPE", "QUAL", "gt", "len")
+  
+  # sample.vars <- sample.vars[which(sample.vars$QUAL>100),]
+  # sample.vars <- sample.vars[which(abs(sample.vars$len)>100),]
+  sample.vars <- sample.vars[which(abs(sample.vars$len)>100 & abs(sample.vars$len)<1000000),]
 
   x <- sample.vars$gt
-  x <- x[which(sample.vars$len>100)]
+  length(x)
 
     raw=data.frame()
     
     DEL=x[which(sample.vars[,3]=="DEL")]
+    DEL.qual=mean(sample.vars[which(sample.vars[,3]=="DEL"),]$QUAL)
     DEL.REF=table(DEL)["0/0"]
     DEL.HET=table(DEL)["0/1"]
     DEL.HOM=table(DEL)["1/1"]
-    del.raw=cbind(DEL.REF,DEL.HET,DEL.HOM)
+    del.raw=cbind(DEL.REF,DEL.HET,DEL.HOM,DEL.qual)
     raw=rbind(raw,del.raw[1,])
     
     DUP=x[which(sample.vars[,3]=="DUP")]
+    DUP.qual=mean(sample.vars[which(sample.vars[,3]=="DUP"),]$QUAL)
     DUP.REF=table(DUP)["0/0"]
     DUP.HET=table(DUP)["0/1"]
     DUP.HOM=table(DUP)["1/1"]
-    dup.raw=cbind(DUP.REF,DUP.HET,DUP.HOM)
+    dup.raw=cbind(DUP.REF,DUP.HET,DUP.HOM,DUP.qual)
     raw=rbind(raw,dup.raw[1,])
     
     INV=x[which(sample.vars[,3]=="INV")]
+    INV.qual=mean(sample.vars[which(sample.vars[,3]=="INV"),]$QUAL)
     INV.REF=table(INV)["0/0"]
     INV.HET=table(INV)["0/1"]
     INV.HOM=table(INV)["1/1"]
-    inv.raw=cbind(INV.REF,INV.HET,INV.HOM)
+    inv.raw=cbind(INV.REF,INV.HET,INV.HOM,INV.qual)
     raw=rbind(raw,inv.raw[1,])    
     
 
     raw$SVTYPE=c("DEL", "DUP", "INV")
     raw$sample=gsub("_vars.txt","",fn[i])
-    colnames(raw)=c("REF","HET","HOM", "SVTYPE", "SAMPLE")
+    colnames(raw)=c("REF","HET","HOM", "meanQUAL" ,"SVTYPE", "SAMPLE")
     
     comp=rbind(comp,raw)
 }
@@ -144,25 +154,29 @@ batch.nums <- read.table("/lustre/scratch119/humgen/projects/cnv_15x/svtools/deb
 colnames(batch.nums) <- c("sample", "batch")
 comp.with.batch <- merge(comp,batch.nums, by.y = "sample", by.x = "SAMPLE")
 
-write.table(comp.with.batch, paste("frequency_genotypes-batch",num, "_long.txt", sep = ""), quote=F, row.names=F, sep="\t")
+write.table(comp.with.batch, paste("frequency_genotypes_batch",num, "_len_100_1mb.txt", sep = ""), quote=F, row.names=F, sep="\t")
 }
 
+
+
+
 # read into local
-pm.batch1 <- read.table("frequency_genotypes-batch1.txt", stringsAsFactors = F, header = T)
-pm.batch2 <- read.table("frequency_genotypes-batch2.txt", stringsAsFactors = F, header = T)
-pm.batch3 <- read.table("frequency_genotypes-batch3.txt", stringsAsFactors = F, header = T)
-pm.batch4 <- read.table("frequency_genotypes-batch4.txt", stringsAsFactors = F, header = T)
-pm.batch5 <- read.table("frequency_genotypes-batch5.txt", stringsAsFactors = F, header = T)
-
-pm.batchAll <- rbind(pm.batch1, pm.batch2, pm.batch3, pm.batch4, pm.batch5)
 
 
-svtype.cols <- c("svpipeline" = "#D95F02", "1000g" = "#7570B3", "genomestrip" = "#E7298A", "BND" = "#66A61E")
-zyg.cols <- c("Het" = "#D95F02", "Hom" = "#7570B3", "Ref" = "#E7298A")
+listSuff=c("_len_100.txt", "_len_100_1mb.txt", "_qual_100.txt","_all.txt")
+
+  suffix=listSuff[4]
+  suffix
+  pm.batchAll=data.frame()
+  
+for (num in 1:5) {
+pm.batch <- read.table(paste("frequency_genotypes_batch",num,suffix, sep=""), stringsAsFactors = F, header = T)
+pm.batchAll <- rbind(pm.batchAll, pm.batch)
+}
 
 
 ## Make some violins describing number of each type per sample
-pdf(width = 10, height = 3, file = "per_batch_het_per_hom.pdf")
+pdf(width = 10, height = 5, file = paste("preM_per_batch",gsub(".txt","",suffix),".pdf", sep = ""))
 ggplot() + #[which(comp.with.batch$SVTYPE=="DUP"),]
   geom_violin(data = pm.batchAll, aes(x=batch, y=HOM), col = "#D95F02", fill = "#D95F02", alpha = 0.5) +
   geom_violin(data = pm.batchAll, aes(x=batch, y=HET), col = "#7570B3", fill = "#7570B3", alpha = 0.5) +
@@ -199,6 +213,8 @@ ggplot() + #[which(comp.with.batch$SVTYPE=="DUP"),]
 graphics.off()
 
 high.samples <- pm.batchAll$SAMPLE[which(pm.batchAll$HET>2100 & pm.batchAll$batch=="BATCH4" &  pm.batchAll$SVTYPE=="DEL")]
+
+
 
 
 
