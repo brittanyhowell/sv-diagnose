@@ -55,11 +55,12 @@ I have worked out how many variants per sample after regenotyping and it is wack
 #### read a vcf
 
 ``` bash
+cd /lustre/scratch119/humgen/projects/cnv_15x/svtools/Phase-I/PreMerge_vcf/BATCH5
 for sample in `ls *.vcf | sed 's/.gt.vcf//g'`
     do
         cat ${sample}.gt.vcf | grep -v "#"  | grep  -v "]"  | grep  -v "\["  | cut -f1,2,5,6,10 | cut -f1 -d: | sed 's/<//g' | sed 's/>//g' > info.A
         cat ${sample}.gt.vcf | grep -v "#" | grep  -v "]"  | grep  -v "\["  | cut -f8 | cut -f2 -d\; | sed 's/SVLEN=//g'  > info.B
-        paste info.A info.B > /lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/BATCH1/${sample}_vars.txt
+        paste info.A info.B > /lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/BATCH5/${sample}_vars.txt
     done
 ```
 
