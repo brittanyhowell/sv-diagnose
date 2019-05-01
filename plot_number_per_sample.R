@@ -142,11 +142,11 @@ batch.nums <- read.table("/lustre/scratch119/humgen/projects/cnv_15x/svtools/deb
 colnames(batch.nums) <- c("sample", "batch")
 comp.with.batch <- merge(comp,batch.nums, by.y = "sample", by.x = "SAMPLE")
 
-# write.table(comp.with.batch, "frequency_genotypes-batch1_hiQual.txt", quote=F, row.names=F, sep="\t")
-# write.table(comp.with.batch, "frequency_genotypes-batch2_hiQual.txt.txt", quote=F, row.names=F, sep="\t")
-# write.table(comp.with.batch, "frequency_genotypes-batch3_hiQual.txt.txt", quote=F, row.names=F, sep="\t")
-# write.table(comp.with.batch, "frequency_genotypes-batch4_hiQual.txt.txt", quote=F, row.names=F, sep="\t")
-# write.table(comp.with.batch, "frequency_genotypes-batch5_hiQual.txt.txt", quote=F, row.names=F, sep="\t")
+write.table(comp.with.batch, "frequency_genotypes-batch1_hiQual.txt", quote=F, row.names=F, sep="\t")
+write.table(comp.with.batch, "frequency_genotypes-batch2_hiQual.txt", quote=F, row.names=F, sep="\t")
+write.table(comp.with.batch, "frequency_genotypes-batch3_hiQual.txt", quote=F, row.names=F, sep="\t")
+write.table(comp.with.batch, "frequency_genotypes-batch4_hiQual.txt", quote=F, row.names=F, sep="\t")
+write.table(comp.with.batch, "frequency_genotypes-batch5_hiQual.txt", quote=F, row.names=F, sep="\t")
 
 # read into local
 pm.batch1 <- read.table("frequency_genotypes-batch1.txt", stringsAsFactors = F, header = T)

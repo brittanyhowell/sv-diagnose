@@ -74,3 +74,28 @@ chr1    3203223    DEL    2.88     0/0    -360
 ```
 
 Which I will now feed back into plot_number_per_sample.R
+
+### Results from PreMerge
+
+Well, they certainly looked more normal.
+Now what.
+Something that might be having an effect is the number of variants in the merge file.
+
+#### Number of non BND lines in the merge vcf
+
+1. 1304385
+2. 1275944
+3. 2600882
+4. 2851188
+5. 2614693
+
+Note this is the sorted file, not the merged file. I had to delete the merge file. Well, I didn't have to, but I did because I had to delete a lot of intermediate files in a rush to get back some free space on the disk.
+
+## What about a nice PCA
+
+I should go back, really, and plot all variants in a PCA, and colour by some variables, and see if that does anything.
+
+### Preparing the data
+
+I need to use my big table of variants - but what am I really clustering on? What could I possibly find? I could plot per sample, list how many variants they have, and the average quality of each of those variants? Or I could plot per variant, and work out each sample's quality, etc.
+The thing is, I know, that the effect is a batch 
