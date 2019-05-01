@@ -80,7 +80,7 @@ zyg.cols <- c("Het" = "#D95F02", "Hom" = "#7570B3", "Ref" = "#E7298A")
 ## Make some violins describing number of each type per sample
 pdf(width = 10, height = 3, file = "per_batch_het_per_hom.pdf")
 ggplot(comp.with.batch) + #[which(comp.with.batch$SVTYPE=="DUP"),]
-  geom_violin(aes(x=batch, y=propNonRef), col = "#D95F02", fill = "#D95F02", alpha = 0.5) + 
+  geom_violin(aes(x=batch, y=HET), col = "#D95F02", fill = "#D95F02", alpha = 0.5) + 
   # geom_violin(aes(x=batch, y=HOM), col = "#7570B3", fill = "#7570B3", alpha = 0.5) + 
   # geom_violin(aes(x=batch, y=REF), fill = "#E7298A") + 
   # scale_fill_manual(values = zyg.cols, 
@@ -94,8 +94,9 @@ graphics.off()
 
 ###### Read in PreMerge VCFs
 
-d <- dir("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/BATCH3", full.names=TRUE)
-fn <- dir("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/BATCH3")
+setwd("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/")
+d <- dir("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/BATCH5", full.names=TRUE)
+fn <- dir("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/BATCH5")
 comp=data.frame()
 
 for (i in 1:length(d)) {
@@ -104,6 +105,7 @@ for (i in 1:length(d)) {
   colnames(sample.vars) <- c("chr", "pos", "SVTYPE", "QUAL", "gt", "len")
 
   x <- sample.vars$gt
+  x <- x[which(sample.vars$QUAL>100)]
 
     raw=data.frame()
     
@@ -130,7 +132,7 @@ for (i in 1:length(d)) {
     
 
     raw$SVTYPE=c("DEL", "DUP", "INV")
-    raw$sample=gsub("_vars.txt","",fn[1])
+    raw$sample=gsub("_vars.txt","",fn[i])
     colnames(raw)=c("REF","HET","HOM", "SVTYPE", "SAMPLE")
     
     comp=rbind(comp,raw)
@@ -140,11 +142,11 @@ batch.nums <- read.table("/lustre/scratch119/humgen/projects/cnv_15x/svtools/deb
 colnames(batch.nums) <- c("sample", "batch")
 comp.with.batch <- merge(comp,batch.nums, by.y = "sample", by.x = "SAMPLE")
 
-write.table(comp.with.batch, "frequency_genotypes-batch1.txt", quote=F, row.names=F, sep="\t")
-write.table(comp.with.batch, "frequency_genotypes-batch2.txt", quote=F, row.names=F, sep="\t")
-write.table(comp.with.batch, "frequency_genotypes-batch3.txt", quote=F, row.names=F, sep="\t")
-write.table(comp.with.batch, "frequency_genotypes-batch4.txt", quote=F, row.names=F, sep="\t")
-write.table(comp.with.batch, "frequency_genotypes-batch5.txt", quote=F, row.names=F, sep="\t")
+# write.table(comp.with.batch, "frequency_genotypes-batch1_hiQual.txt", quote=F, row.names=F, sep="\t")
+# write.table(comp.with.batch, "frequency_genotypes-batch2_hiQual.txt.txt", quote=F, row.names=F, sep="\t")
+# write.table(comp.with.batch, "frequency_genotypes-batch3_hiQual.txt.txt", quote=F, row.names=F, sep="\t")
+# write.table(comp.with.batch, "frequency_genotypes-batch4_hiQual.txt.txt", quote=F, row.names=F, sep="\t")
+# write.table(comp.with.batch, "frequency_genotypes-batch5_hiQual.txt.txt", quote=F, row.names=F, sep="\t")
 
 # read into local
 pm.batch1 <- read.table("frequency_genotypes-batch1.txt", stringsAsFactors = F, header = T)
@@ -163,18 +165,41 @@ zyg.cols <- c("Het" = "#D95F02", "Hom" = "#7570B3", "Ref" = "#E7298A")
 ## Make some violins describing number of each type per sample
 pdf(width = 10, height = 3, file = "per_batch_het_per_hom.pdf")
 ggplot() + #[which(comp.with.batch$SVTYPE=="DUP"),]
-  # geom_violin(aes(x=batch, y=HOM), col = "#D95F02", fill = "#D95F02", alpha = 0.5) + 
-  # geom_violin(aes(x=batch, y=HET), col = "#7570B3", fill = "#7570B3", alpha = 0.5) +
-  geom_violin(data = pm.batchAll[which(pm.batchAll$batch=="BATCH1"),], aes(x=batch, y=HET, fill = SVTYPE), alpha = 0.5) +
-  geom_violin(data = comp.with.batch[which(comp.with.batch$batch=="BATCH1"),], aes(x=batch, y=HET, fill = SVTYPE), alpha = 0.5) + # "#E7298A"
-  
+  geom_violin(data = pm.batchAll, aes(x=batch, y=HOM), col = "#D95F02", fill = "#D95F02", alpha = 0.5) +
+  geom_violin(data = pm.batchAll, aes(x=batch, y=HET), col = "#7570B3", fill = "#7570B3", alpha = 0.5) +
+  # geom_violin(data = pm.batchAll[which(pm.batchAll$batch=="BATCH1"),], aes(x=batch, y=HET, fill = SVTYPE), alpha = 0.5) +
+  # geom_violin(data = comp.with.batch[which(comp.with.batch$batch=="BATCH1"),], aes(x=batch, y=HET, fill = SVTYPE), alpha = 0.5) + # "#E7298A"
   # scale_fill_manual(values = zyg.cols, 
   # name="Type",
   # labels=c("Het", "Hom", "Ref")) + 
-  ylab("Number of Hets per Hom") +
-  xlab("") +
-  # facet_grid(.~pm.batchAll$SVTYPE) +
+    ylab("Number of hets/homs per sample") +
+ xlab("") +
+  facet_grid(.~pm.batchAll$SVTYPE) +
   theme_bw() 
 graphics.off()
+
+
+
+
+### BATCH4
+
+
+pdf(width = 10, height = 5, file = "pre_merge_batch4.pdf")
+ggplot() + #[which(comp.with.batch$SVTYPE=="DUP"),]
+  geom_jitter(data = pm.batchAll[which(pm.batchAll$batch=="BATCH4"),], aes(x=batch, y=HET), col = "#D95F02", fill = "#D95F02", alpha = 0.1) +
+  geom_jitter(data = pm.batchAll[which(pm.batchAll$batch=="BATCH4"),], aes(x=batch, y=HOM), col = "#7570B3", fill = "#7570B3", alpha = 0.1) +
+  # geom_violin(data = pm.batchAll[which(pm.batchAll$batch=="BATCH1"),], aes(x=batch, y=HET, fill = SVTYPE), alpha = 0.5) +
+  # geom_violin(data = comp.with.batch[which(comp.with.batch$batch=="BATCH1"),], aes(x=batch, y=HET, fill = SVTYPE), alpha = 0.5) + # "#E7298A"
+  # scale_fill_manual(values = zyg.cols, 
+  # name="Type",
+  # labels=c("Het", "Hom", "Ref")) + 
+  ylab("Number of hets/homs per sample") +
+  xlab("") +
+  facet_grid(.~pm.batchAll[which(pm.batchAll$batch=="BATCH4"),]$SVTYPE) +
+  theme_bw() 
+graphics.off()
+
+high.samples <- pm.batchAll$SAMPLE[which(pm.batchAll$HET>2100 & pm.batchAll$batch=="BATCH4" &  pm.batchAll$SVTYPE=="DEL")]
+
 
 
