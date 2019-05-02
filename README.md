@@ -91,9 +91,59 @@ Something that might be having an effect is the number of variants in the merge 
 
 Note this is the sorted file, not the merged file. I had to delete the merge file. Well, I didn't have to, but I did because I had to delete a lot of intermediate files in a rush to get back some free space on the disk.
 
+#### regenerate them
+
+If I could separate out the l-merge function from the MergeWDL, then I could specifically rerun the relevant commands.
+I suppose this isn't so hard (see [rerun_lmerge.sh](https://github.com/brittanyhowell/sv-diagnose/))
+I ran l-merge from the Merge.WDL on the sorted vcfs, and now have one merge file per batch.
+
+#### Analyse
+
+Reading:
+
+``` bash
+# Unzip all:
+gzip -d ${batch}.gz
+
+# Pull out some feats:
+for batch in `ls *5*.vcf`
+    do
+        cat ${batch} | grep -v "#"  | grep  -v "]"  | grep  -v "\["  | cut -f1,2,5,6  | sed 's/<//g' | sed 's/>//g' > info.A
+        cat ${batch} | grep -v "#" | grep  -v "]"  | grep  -v "\["  | cut -f8 | perl -pe 's/SVLEN=/\nSVLEN=/g' |  perl -pe 's/;CIPOS/\n/g' | perl -pe 's/;END/\n/g' | grep "SVLEN" |  perl -pe  's/SVLEN=//g'  > info.B
+        paste info.A info.B > ${batch%.vcf}_vars.txt
+    done
+```
+
+See Merge vcf characteristics. in plot_number_per_sample.R
+
 ## Checking the Pre_Post_Merge VCFs
 
 Checking these will allow me to know how many per variant and also I can plot more metrics maybe
 
+### What to extract
 
+The VCF options:
+```CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO    FORMAT  EGAN00001345375```
+
+With the Pre_Merge VCFs, I just read over it with this:
+
+``` bash
+# Make the output folder
+mkdir -pv /lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/Pre_Post_Merge/BATCH3/
+
+cd /lustre/scratch119/humgen/projects/cnv_15x/svtools/Phase-I/PrePostMerge_vcf/BATCH3
+for sample in `ls *.vcf | sed 's/.gt.vcf//g'`
+    do
+        cat ${sample}.gt.vcf | grep -v "#"  | grep  -v "]"  | grep  -v "\["  | cut -f1,2,5,6,10 | cut -f1 -d: | sed 's/<//g' | sed 's/>//g' > info.A
+        cat ${sample}.gt.vcf | grep -v "#" | grep  -v "]"  | grep  -v "\["  | cut -f8 | cut -f2 -d\; | sed 's/SVLEN=//g'  > info.B
+        paste info.A info.B > /lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/Pre_Post_Merge/BATCH3/${sample}_vars.txt
+    done
+```
+
+Which is fine, and what I'm going to start with, however, I could pull out any of THESE:
+
+``` bash
 bcftools query GT:GQ:SQ:GL:DP:RO:AO:QR:QA:RS:AS:ASC:RP:AP:AB
+```
+
+Ok really though once PPMs are all unzipped, I can read them into the old faithful R script
