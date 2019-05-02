@@ -91,11 +91,9 @@ Something that might be having an effect is the number of variants in the merge 
 
 Note this is the sorted file, not the merged file. I had to delete the merge file. Well, I didn't have to, but I did because I had to delete a lot of intermediate files in a rush to get back some free space on the disk.
 
-## What about a nice PCA
+## Checking the Pre_Post_Merge VCFs
 
-I should go back, really, and plot all variants in a PCA, and colour by some variables, and see if that does anything.
+Checking these will allow me to know how many per variant and also I can plot more metrics maybe
 
-### Preparing the data
 
-I need to use my big table of variants - but what am I really clustering on? What could I possibly find? I could plot per sample, list how many variants they have, and the average quality of each of those variants? Or I could plot per variant, and work out each sample's quality, etc.
-The thing is, I know, that the effect is a batch 
+bcftools query GT:GQ:SQ:GL:DP:RO:AO:QR:QA:RS:AS:ASC:RP:AP:AB

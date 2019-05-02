@@ -13,6 +13,9 @@ setwd("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug")
 
 ## Read in genotype information per sample/variant
 vcf <- read.table("BATCHmerge.AF.CN.GT.nosq.txt", header = TRUE, stringsAsFactors = F)
+# vcf <- vcf[which((abs(vcf$SVLEN)>100 & abs(vcf$SVLEN)<1000000)),]
+# vcf <- vcf[which(vcf$SU>5),]
+# vcf <- vcf[which(vcf$AF>0.1),]
 
 # Get the column numbers which contain the samples
 sample.cols <- which(grepl("EGAN", colnames(vcf), fixed=TRUE))
@@ -66,22 +69,24 @@ comp.with.batch <- merge(comp,batch.nums, by.y = "sample", by.x = "SAMPLE")
 # add a column for homs/hets
 comp.with.batch$prophet <- comp.with.batch$HET/comp.with.batch$HOM
 comp.with.batch$prophom <- comp.with.batch$HOM/comp.with.batch$HET
-comp.with.batch$propNonRef <- (2*(comp.with.batch$HOM)+comp.with.batch$HET)/comp.with.batch$REF
+# comp.with.batch$propNonRef <- (2*(comp.with.batch$HOM)+comp.with.batch$HET)/comp.with.batch$REF
 
 # Save data
-write.table(comp.with.batch, "frequency_genotypes-change.txt", quote=F, row.names=F, sep="\t")
-setwd("Documents/data/Phase-I/debug/")
-comp.with.batch <- read.table("frequency_genotypes-change.txt", stringsAsFactors = F, header = T)
+write.table(comp.with.batch, "frequency_genotypes_PoM_all.txt", quote=F, row.names=F, sep="\t")
 
-svtype.cols <- c("svpipeline" = "#D95F02", "1000g" = "#7570B3", "genomestrip" = "#E7298A", "BND" = "#66A61E")
-zyg.cols <- c("Het" = "#D95F02", "Hom" = "#7570B3", "Ref" = "#E7298A")
+# Read data
+setwd("Documents/data/Phase-I/debug/")
+comp.with.batch <- read.table("frequency_genotypes_PoM_100_1mb.txt", stringsAsFactors = F, header = T)
+
+# svtype.cols <- c("svpipeline" = "#D95F02", "1000g" = "#7570B3", "genomestrip" = "#E7298A", "BND" = "#66A61E")
+# zyg.cols <- c("Het" = "#D95F02", "Hom" = "#7570B3", "Ref" = "#E7298A")
 
 
 ## Make some violins describing number of each type per sample
-pdf(width = 10, height = 3, file = "per_batch_het_per_hom.pdf")
+pdf(width = 10, height = 5, file = "PoM_100_1mb.pdf")
 ggplot(comp.with.batch) + #[which(comp.with.batch$SVTYPE=="DUP"),]
   geom_violin(aes(x=batch, y=HET), col = "#D95F02", fill = "#D95F02", alpha = 0.5) + 
-  # geom_violin(aes(x=batch, y=HOM), col = "#7570B3", fill = "#7570B3", alpha = 0.5) + 
+  geom_violin(aes(x=batch, y=HOM), col = "#7570B3", fill = "#7570B3", alpha = 0.5) +
   # geom_violin(aes(x=batch, y=REF), fill = "#E7298A") + 
   # scale_fill_manual(values = zyg.cols, 
                       # name="Type",
@@ -95,9 +100,6 @@ graphics.off()
 ###### Read in PreMerge VCFs
 
 setwd("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/")
-
-
-
 for (num in 1:5){
   print(num)
 d <- dir(paste("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/BATCH",num,sep=""), full.names=TRUE)
@@ -175,11 +177,14 @@ pm.batchAll <- rbind(pm.batchAll, pm.batch)
 }
 
 
+
+
 ## Make some violins describing number of each type per sample
 pdf(width = 10, height = 5, file = paste("preM_per_batch",gsub(".txt","",suffix),".pdf", sep = ""))
 ggplot() + #[which(comp.with.batch$SVTYPE=="DUP"),]
   geom_violin(data = pm.batchAll, aes(x=batch, y=HOM), col = "#D95F02", fill = "#D95F02", alpha = 0.5) +
   geom_violin(data = pm.batchAll, aes(x=batch, y=HET), col = "#7570B3", fill = "#7570B3", alpha = 0.5) +
+  geom_violin(data = pm.batchAll, aes(x=batch, y=meanQUAL), col = "red", fill = "red", alpha = 0.1) +
   # geom_violin(data = pm.batchAll[which(pm.batchAll$batch=="BATCH1"),], aes(x=batch, y=HET, fill = SVTYPE), alpha = 0.5) +
   # geom_violin(data = comp.with.batch[which(comp.with.batch$batch=="BATCH1"),], aes(x=batch, y=HET, fill = SVTYPE), alpha = 0.5) + # "#E7298A"
   # scale_fill_manual(values = zyg.cols, 
