@@ -138,6 +138,8 @@ for sample in `ls *.vcf | sed 's/.gt.vcf//g'`
         cat ${sample}.gt.vcf | grep -v "#" | grep  -v "]"  | grep  -v "\["  | cut -f8 | cut -f2 -d\; | sed 's/SVLEN=//g'  > info.B
         paste info.A info.B > /lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/Pre_Post_Merge/BATCH3/${sample}_vars.txt
     done
+
+    bsub -o "makeSums_batch3_%J.o" "bash makeSumsB3.sh"
 ```
 
 Which is fine, and what I'm going to start with, however, I could pull out any of THESE:
@@ -147,3 +149,40 @@ bcftools query GT:GQ:SQ:GL:DP:RO:AO:QR:QA:RS:AS:ASC:RP:AP:AB
 ```
 
 Ok really though once PPMs are all unzipped, I can read them into the old faithful R script
+
+## PCA
+
+### Preparing the data
+
+I think the PCA should be split into two: stats per variant and stats per individual.
+Ideally, I would have a large text file which contains all variants, from all
+
+1. bcftools query each and every table to pull out relevant info fields
+2. read into R for processing
+
+Going to paste on a batch number and randomly select a few vars from each batch:
+
+``` bash
+cd /lustre/scratch119/humgen/projects/cnv_15x/svtools/Phase-I/PostMerge_vcf
+bsub -o "zip_me_%J.o" "bash zipMe.sh"
+
+bcftools view -Oz -o  BATCH1.vcf.gz BATCH1.vcf
+bcftools view -Oz -o  BATCH2.vcf.gz BATCH2.vcf
+bcftools view -Oz -o  BATCH3.vcf.gz BATCH3.vcf
+bcftools view -Oz -o  BATCH4.vcf.gz BATCH4.vcf
+bcftools view -Oz -o  BATCH5.vcf.gz BATCH5.vcf
+
+bcftools query  -f '%CHROM\t%POS\t%ID\t%QUAL\t%SVTYPE\t%AF\t%NSAMP\t%MSQ\t' BATCH1.vcf.gz > BATCH1_from_query.txt
+cat BATCH1_from_query.txt | grep -v "BND" |awk '{print $0 "\t BATCH1"}' > BATCH1.txt
+
+shuf -n 100 BATCH1.txt > BATCH1_rand.txt
+
+
+```
+
+## Further action
+
+1. Plot QUAL dist <2000
+1. Merge batches 1&2, regenotype.
+2. Make PCA of AF <%5, <1%, of all samples
+2. Check the impact of the SU filter
