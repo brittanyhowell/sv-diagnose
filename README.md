@@ -172,11 +172,12 @@ bcftools view -Oz -o  BATCH3.vcf.gz BATCH3.vcf
 bcftools view -Oz -o  BATCH4.vcf.gz BATCH4.vcf
 bcftools view -Oz -o  BATCH5.vcf.gz BATCH5.vcf
 
-bcftools query  -f '%CHROM\t%POS\t%ID\t%QUAL\t%SVTYPE\t%AF\t%NSAMP\t%MSQ\t' BATCH1.vcf.gz > BATCH1_from_query.txt
-cat BATCH1_from_query.txt | grep -v "BND" |awk '{print $0 "\t BATCH1"}' > BATCH1.txt
+bcftools query  -f '%CHROM\t%POS\t%ID\t%QUAL\t%SVTYPE\t%AF\t%NSAMP\t%MSQ\n' BATCH5.vcf.gz > BATCH5_from_query.txt
+cat BATCH5_from_query.txt | grep -v "BND" |awk '{print $0 "\t BATCH5"}' > BATCH5.txt
 
-shuf -n 100 BATCH1.txt > BATCH1_rand.txt
+shuf -n 1000 BATCH5.txt > BATCH5_rand.txt
 
+cat BATCH1_rand.txt BATCH2_rand.txt BATCH3_rand.txt BATCH4_rand.txt BATCH5_rand.txt > BATCHall_rand.txt
 
 ```
 

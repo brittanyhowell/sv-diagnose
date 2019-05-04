@@ -11,18 +11,34 @@ convertSVTYPE=function(x) {
   return(val)
 }
 
-df <- iris[c(1, 2, 3, 4)]
-vcf.reduce <- vcf[,c(7,11,12,13,17,18,19)]
+setwd("~/Documents/data/Phase-I/debug/pca/")
+rand.vars <- read.table("BATCHall_rand.txt", stringsAsFactors = F)
+colnames(rand.vars) <- c("chr", "pos", "ID", "QUAL", "SVTYPE", "AF", "NSAMP", "MSQ", "batch")
 
-vcf.reduce$SVTYPE=sapply(vcf.reduce$SVTYPE, convertSVTYPE)
 
-vcf.reduce=as.data.frame(apply(vcf.reduce,2,function(x){as.numeric(x)}))
+
+
+rand.vars=subset(rand.vars,select = -c(batch, chr, pos))
+
+# vcf.reduce <- vcf[,c(7,11,12,13,17,18,19)]
+
+rand.vars$SVTYPE=sapply(rand.vars$SVTYPE, convertSVTYPE)
+
+# PCA with function PCA
+library(FactoMineR)
+
+# apply PCA
+pca3 = PCA(rand.vars)
+           
+
+
+rand.vars=as.data.frame(apply(rand.vars,2,function(x){as.numeric(x)}))
 # vcf.reduce$SVLEN=abs(vcf.reduce$SVLEN)
 
 
 
 
-autoplot(prcomp(vcf.reduce),
+autoplot(prcomp(rand.vars),
          colour = 'SVTYPE',
          loadings = TRUE,
          loadings.label = TRUE, loadings.label.size = 3)
