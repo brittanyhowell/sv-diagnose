@@ -9,7 +9,7 @@ DEBUGDIR=/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/
 wkdir=${DEBUGDIR}/caseControl
 
 
-BATCHA="5"
+BATCHA="1"
 # BATCHB="5"
 # keepFILE=${wkdir}/samples_keep_${BATCHA}_${BATCHB}.tmp
 keepFILE=${wkdir}/samples_keep_${BATCHA}.tmp
@@ -35,26 +35,32 @@ cd ${wkdir}
         bsub -o filter_samples_%J.o "bash filter_samples_${BATCHA}.sh"
 
     # Convert to Plink format
-        /lustre/scratch118/infgen/team133/db22/software/plink2/plink2 --vcf BATCHmerge.1.2.vcf.gz --out BATCHmerge.1.2 --make-bed
+        /lustre/scratch118/infgen/team133/db22/software/plink2/plink2 --vcf BATCHmerge.1 --out BATCHmerge.1 --make-bed
 
     # Change .fam file so A is cases and B is controls 
         mv BATCHmerge.${BATCHA}.${BATCHB}.fam BATCHmerge.${BATCHA}.${BATCHB}.real.fam
         touch BATCHmerge.${BATCHA}.${BATCHB}.fam
+
+        mv BATCHmerge.${BATCHA}.fam BATCHmerge.${BATCHA}.real.fam
+        touch BATCHmerge.${BATCHA}.fam
         
         # Controls (1)- BATCHA
         for sample in `cat ${fileListBATCHA} | cut -f1 | head -n200`
         do 
-            awk -v sample="$sample" '{ if ($2 == sample) {print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t1" } }' BATCHmerge.${BATCHA}.${BATCHB}.backup >> BATCHmerge.${BATCHA}.${BATCHB}.fam
+            awk -v sample="$sample" '{ if ($2 == sample) {print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t1" } }' BATCHmerge.${BATCHA}.real.fam >> BATCHmerge.${BATCHA}.fam
         done
         
         # Cases (2) - BATCHB
-        for sample in `cat ${fileListBATCHA} | cut -f1 | tail -n200`
+        for sample in `cat ${fileListBATCHA} | cut -f1 | tail -n265`
         do 
-            awk -v sample="$sample" '{ if ($2 == sample) {print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t2" } }' BATCHmerge.${BATCHA}.${BATCHB}.backup >> BATCHmerge.${BATCHA}.${BATCHB}.fam
+            awk -v sample="$sample" '{ if ($2 == sample) {print $1 "\t" $2 "\t" $3 "\t" $4 "\t" $5 "\t2" } }' BATCHmerge.${BATCHA}.real.fam >> BATCHmerge.${BATCHA}.fam
         done
     
     # run association
-        /lustre/scratch118/infgen/team133/db22/software/plink1.9/plink --bfile BATCHmerge.1.2 --out BATCHmerge.1 --allow-no-sex  --assoc --adjust qq-plot
+        /lustre/scratch118/infgen/team133/db22/software/plink1.9/plink --bfile BATCHmerge.1 --out BATCHmerge.1.out --allow-no-sex  --assoc --adjust qq-plot
+
+    
+    # Plot the QQ
 
 
 
