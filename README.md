@@ -181,9 +181,64 @@ cat BATCH1_rand.txt BATCH2_rand.txt BATCH3_rand.txt BATCH4_rand.txt BATCH5_rand.
 
 ```
 
+## A different type of PCA
+
+Since I can't really figure out a nice way to come up with my own eigenvectors (fairly sure this is wrong _anyway_) I will just give everything to plink and throw everything to the wind.
+
+### Make Plink format, make PCA
+
+I used a variation of this code, with differences in ```maf```, ```hwe``` and ```geno``` for different results.
+
+``` bash
+bsub -G team151 -Is -M 6000 -R'select[mem>6000] rusage[mem=6000]' -q yesterday bash
+
+
+/lustre/scratch118/infgen/team133/db22/software/plink2/plink2 --vcf BATCHmerge.GT.vcf.gz --out reduce --make-bed
+
+# /lustre/scratch118/infgen/team133/db22/software/plink2/plink2 --vcf BATCHmerge.GT.vcf.gz  --make-bed --out LD/LD
+
+# /lustre/scratch118/infgen/team133/db22/software/plink2/plink2 --bfile LD/LD --indep-pairwise 50 10 0.15 --out LD/LD
+
+# /lustre/scratch118/infgen/team133/db22/software/plink2/plink2 --bfile LD/LD --extract LD/LD.prune.in --out LD/LDout --make-bed
+
+
+/lustre/scratch118/infgen/team133/db22/software/plink2/plink2 --bfile reduce --pca --out reduce_pca
+```
+
+R code available in pca.R.
+I did some basic filtering using Plink, as above, but I expanded on this in the script filter_for_pca.sh
+
+### Removing many fields from the VCF
+
+To see what is affecting the PCA, I'm going to strip back the VCF so it plots with fewer metrics
+
+``` bash
+/nfs/team151/software/bcftools_2018/bcftools-1.9/bcftools annotate -O z -o BATCHmerge.reduce.vcf.gz -x ^INFO/AF,^INFO/SVLEN,^INFO/MSQ,^FORMAT/GT BATCHmerge.cn.vcf.gz
+```
+
+### Metadata
+
+I need to colour my samples by more than just batch. I'm going to work on a metadata table for them. - I stalled here because I didn't like the idea of summary statistics and counting them, and was running out of ideas.
+
+#### Information needed
+
+1. number of sites per sample - of each type
+2. Average quality of samples
+3. Number of bases called in that person.
+
+## A kind of association
+
+To test for systematic biases, I am going to conduct a case control analysis between batches, and use some diagnostic plots to see what to blame.
+
 ## Further action
 
 1. Plot QUAL dist <2000
 1. Merge batches 1&2, regenotype.
 2. Make PCA of AF <%5, <1%, of all samples
 2. Check the impact of the SU filter
+
+1. Look at new code changes
+2. Test new code with downloaded batch
+3. set up regenotyping for batches 1&2
+
+4. Make a metadata table
