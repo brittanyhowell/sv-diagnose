@@ -31,7 +31,7 @@ Now I have to bind this to which batch the variants belong to.
 
 #### In which batch do the variants belong
 
-Ugh I have deleted the individual filelists per batch. Nevermind I'll make them again: 
+Ugh I have deleted the individual filelists per batch. Nevermind I'll make them again:
 
 ``` bash
 cd /lustre/scratch119/humgen/projects/cnv_15x/svtools/Phase-I/PostMerge_vcf/
@@ -229,16 +229,70 @@ I need to colour my samples by more than just batch. I'm going to work on a meta
 ## A kind of association
 
 To test for systematic biases, I am going to conduct a case control analysis between batches, and use some diagnostic plots to see what to blame.
+To conduct the case control I used case_control.sh, and for plotting: case_control.R
 
-## Further action
+### Result
 
-1. Plot QUAL dist <2000
-1. Merge batches 1&2, regenotype.
-2. Make PCA of AF <%5, <1%, of all samples
-2. Check the impact of the SU filter
+There is an unresolvable difference between batches. I think the error lies in vcfpaste - the code which combines all genotypes together from various batches. I was under the impression it added variants to the bottom of the file, but I am no longer sure.
 
-1. Look at new code changes
-2. Test new code with downloaded batch
-3. set up regenotyping for batches 1&2
+### Testing variation within batch
 
-4. Make a metadata table
+To test if there is only an error when batches are mixed, I am going to do a few tests to see if the same errors occur.
+
+#### Tests
+
+1. check number of variants per batch (done)
+1. get 5 vcfs, run paste, and look at the output
+1. nrd just batch 3
+1. PCA just batch 3
+1. mAF spectrum just batch 3
+1. HW batch 3
+1. plink, find SNPs in LD - batch3.
+
+I'm going to do the last one first, because I keep being asked if I've done the LD thing.
+
+## Filtering with plink
+
+Remove mac <2, was SO FAST. 10 seconds. Plink is great.
+
+``` bash
+# Start time: Tue May 14 16:36:26 2019
+# 257853 MB RAM detected; reserving 128926 MB for main workspace.
+# Allocated 4083 MB successfully, after larger attempt(s) failed.
+# Using up to 32 threads (change this with --threads).
+# 3724 samples (0 females, 0 males, 3724 ambiguous; 3724 founders) loaded from
+# SNP_chr1.fam.
+# 4627220 variants loaded from SNP_chr1.bim.
+# Note: No phenotype data present.
+# Calculating allele frequencies... done.
+# 2527889 variants removed due to minor allele threshold(s)
+# (--maf/--max-maf/--mac/--max-mac).
+# 2099331 variants remaining after main filters.
+# Writing SNP_chr1_mac.bed ... done.
+# Writing SNP_chr1_mac.bim ... done.
+# Writing SNP_chr1_mac.fam ... done.
+# End time: Tue May 14 16:36:36 2019
+
+```
+
+The command I have ended up with is: ```/lustre/scratch118/infgen/team133/db22/software/plink2/plink2  --exclude ID.txt --mac 2  --keep ${batch1samples} --vcf ${snp_file} --out SNP_${chrTabix} --recode vcf``` Which is just wonderful - it does everything in one step.
+
+So it specifically doesn't like merging my kind of files:
+
+``` bash
+# Error: 1 variant with 3+ alleles present.
+# * If you believe this is due to strand inconsistency, try --flip with
+#   merge-merge.missnp.
+#   (Warning: if this seems to work, strand errors involving SNPs with A/T or C/G
+#   alleles probably remain in your data.  If LD between nearby SNPs is high,
+#   --flip-scan should detect them.)
+# * If you are dealing with genuine multiallelic variants, we recommend exporting
+#   that subset of the data to VCF (via e.g. '--recode vcf'), merging with
+#   another tool/script, and then importing the result; PLINK is not yet suited
+#   to handling them.
+  ```
+  
+But removing the low mac and excluding the ID='.' did help.
+
+Ps it works.
+The fact that there are SNPs in LD with the SVs means that the scrambling process is the regenotyping.
