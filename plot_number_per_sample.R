@@ -6,20 +6,24 @@
 
 # library(reshape)
 library(ggplot2)
-library(sinaplot)
+# library(sinaplot)
 # library(plyr)
 # library(lemon)
 setwd("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug")
+setwd("~/Documents/data/Phase-I/PostMerge/")
 
 ## Read in genotype information per sample/variant
-vcf <- read.table("BATCHmerge.AF.CN.GT.nosq.txt", header = TRUE, stringsAsFactors = F)
+vcf <- read.table("BATCH1.GT.no_bnd.txt", header = TRUE, stringsAsFactors = F)
+# vcf <- read.table("../plots/testpls", header = TRUE, stringsAsFactors = F)
+vcf <- vcf[which(vcf$SVTYPE!="BND"),]
+vcf=head(n=1000,vcf)
 # vcf <- vcf[which((abs(vcf$SVLEN)>100 & abs(vcf$SVLEN)<1000000)),]
 # vcf <- vcf[which(vcf$SU>5),]
 # vcf <- vcf[which(vcf$AF>0.1),]
 
 # Get the column numbers which contain the samples
 sample.cols <- which(grepl("EGAN", colnames(vcf), fixed=TRUE))
-
+sample.cols <- head(sample.cols)
 
 
 # Iterate over the samples, and sum how many of each genotype exists
@@ -60,9 +64,10 @@ for (i in sample.cols) {
 }
 # Remove the "gt" from the samplenames
 comp$SAMPLE <- gsub(".GT", "", comp$SAMPLE)
+comp$SAMPLE <- gsub(".*EGAN", "EGAN", comp$SAMPLE)
 
 # add batch number
-batch.nums <- read.table("sampleList_batchname.txt", header = F, stringsAsFactors = F)
+batch.nums <- read.table("/lustre/scratch119/humgen/projects/cnv_15x/svtools/debug/sampleList_batchname.txt", header = F, stringsAsFactors = F)
 colnames(batch.nums) <- c("sample", "batch")
 comp.with.batch <- merge(comp,batch.nums, by.y = "sample", by.x = "SAMPLE")
 
@@ -72,7 +77,7 @@ comp.with.batch$prophom <- comp.with.batch$HOM/comp.with.batch$HET
 # comp.with.batch$propNonRef <- (2*(comp.with.batch$HOM)+comp.with.batch$HET)/comp.with.batch$REF
 
 # Save data
-write.table(comp.with.batch, "frequency_genotypes_PoM_all.txt", quote=F, row.names=F, sep="\t")
+write.table(comp.with.batch, "frequency_genotypes_PoM_BATCH1.txt", quote=F, row.names=F, sep="\t")
 
 # Read data
 setwd("Documents/data/Phase-I/debug/")
@@ -83,7 +88,7 @@ comp.with.batch <- read.table("frequency_genotypes_PoM_100_1mb.txt", stringsAsFa
 
 
 ## Make some violins describing number of each type per sample
-pdf(width = 10, height = 5, file = "PoM_100_1mb.pdf")
+pdf(width = 10, height = 5, file = "PoM_num_BATCH1.pdf")
 ggplot(comp.with.batch) + #[which(comp.with.batch$SVTYPE=="DUP"),]
   geom_violin(aes(x=batch, y=HET), col = "#D95F02", fill = "#D95F02", alpha = 0.5) + 
   geom_violin(aes(x=batch, y=HOM), col = "#7570B3", fill = "#7570B3", alpha = 0.5) +
