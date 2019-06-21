@@ -296,3 +296,10 @@ But removing the low mac and excluding the ID='.' did help.
 
 Ps it works.
 The fact that there are SNPs in LD with the SVs means that the scrambling process is the regenotyping.
+
+## Final
+
+I checked the Post_Merge vcfs, and they wer all normal. Leading me to think that it was actually PostMerge, the final step.
+I found vcfpaste to be the erroneous step. It was pasting columns together without making sure that the variants actually line up. This caused a frame shift in the variants genotyped, and so, I can no longer merge them.
+
+I confirmed this by running an LD analysis on each batch individually (as in, I ran post merge on batches seperately) 
